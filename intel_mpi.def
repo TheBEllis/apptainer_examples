@@ -1,0 +1,107 @@
+BootStrap: library
+From: ubuntu:latest
+Stage: gcc_build
+
+%setup
+  mkdir ${APPTAINER_ROOTFS}/Projects
+
+%environment
+export OMP_NUM_THREADS=1
+export HDF5_DIR=/usr/local/HDF_Group/HDF5/2.0.0
+
+export CC=mpicc
+export CXX=mpicxx
+export FC=mpif90
+export F90=mpif90
+export F77=mpif77
+
+export I_MPI_CC=gcc
+export I_MPI_CXX=g++
+export I_MPI_F90=gfortran
+export I_MPI_FC=gfortran
+export I_MPI_F77=gfortran
+
+%arguments
+BUILD_CORES=6
+
+%files
+
+%post -c /bin/bash
+  apt-get update && apt-get upgrade -y
+
+  apt-get install -y build-essential \
+                  git \
+                  python3 \
+                  curl \
+                  flex \
+                  bison \
+                  wget \
+                  gnupg \
+                  ca-certificates \
+                  gfortran \
+  && rm -rf /var/lib/apt/lists/*
+
+  cd /Projects/
+
+  # Install up to date CMake
+  wget -q -O cmake_install.sh https://github.com/Kitware/CMake/releases/download/v4.2.1/cmake-4.2.1-linux-x86_64.sh \
+  && chmod +x cmake_install.sh \
+  && ./cmake_install.sh --skip-license --prefix=/usr/local \
+  
+  # Get intel repos, setup OneAPI MPI and MKL
+  # download the key to system keyring
+  wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
+  | gpg --dearmor | tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
+
+  # add signed entry to apt sources and configure the APT client to use Intel repository:
+  echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | tee /etc/apt/sources.list.d/oneAPI.list
+
+    # Update apt list to get intel repos
+  apt update
+
+    # Install Intel MPI runtime + dev headers
+  apt-get install -y \
+      intel-oneapi-mpi=2021.6.0-602  \
+      intel-oneapi-mpi-devel=2021.6.0-602 \
+      intel-oneapi-mkl-devel
+
+      # Clean up
+  apt-get clean
+  rm -rf /var/lib/apt/lists/*
+
+  # Source vars for new intel comps
+  export CC=mpicc
+  export CXX=mpicxx
+  export FC=mpif90
+  export F90=mpif90
+  export F77=mpif77
+
+  export I_MPI_CC=gcc
+  export I_MPI_CXX=g++
+  export I_MPI_F90=gfortran
+  export I_MPI_FC=gfortran
+  export I_MPI_F77=gfortran
+
+  # Set intel mpi environment
+  . /opt/intel/oneapi/setvars.sh
+
+    
+   # Go to projects dir
+  cd /Projects/
+
+   # Install hdf5
+  wget -q https://support.hdfgroup.org/releases/hdf5/v2_0/v2_0_0/downloads/hdf5.tar.gz  || { echo "Failed to download hdf5" ; exit 1 ; }
+
+  tar -xf hdf5.tar.gz
+
+  cd hdf5-2.0.0
+  mkdir build && cd build
+
+  cmake -DHDF5_ENABLE_PARALLEL=1 -DHDF5_BUILD_FORTRAN=1 -DCMAKE_C_COMPILER=mpicc -DCMAKE_CXX_COMPILER=mpicxx -DCMAKE_Fortran_COMPILER=mpif90 -DCMAKE_BUILD_TYPE=Release ../
+
+  make -j {{BUILD_CORES}} && make install
+   
+  # Remove HDF5 source code
+  rm -rf /Projects/hdf5-2.0.0
+  rm -rf /Projects/hdf5.tar.gz
+  rm -rf /Projects/cmake_install.sh

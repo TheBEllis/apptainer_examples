@@ -1,0 +1,54 @@
+BootStrap: library
+From: ubuntu:latest
+Stage: build_example_program
+
+# Setup is executed on the host! We need APPTAINER_ROOTFS to reference our container filesystem
+
+%setup
+  mkdir ${APPTAINER_ROOTFS}/Projects
+
+#A file containing these env vars will be sourced at runtime, not build time. Will still need to define these in %post
+
+# environment file can be found at /.singularity.d/env within the container
+
+%environment
+  export HELLO="My environment is setup!"
+  export OMP_NUM_THREADS=1
+
+# Here we can define arguments to be used at build time. If defined in file and in cli, cli takes precedence 
+%arguments
+  PRINT_STATEMENT="This is building"
+
+%files
+  ./test_program /Projects/test_program
+
+%post -c /bin/bash
+  apt-get update && apt-get upgrade -y
+
+  apt-get install -y build-essential \
+                  git \
+                  python3 \
+                  curl \
+                  flex \
+                  bison \
+                  wget \
+                  gnupg \
+                  ca-certificates \
+                  gfortran \
+  && rm -rf /var/lib/apt/lists/*
+
+  cd /Projects/test_program  
+  g++ main.cpp -o my_program
+
+  echo {{PRINT_STATEMENT}}
+
+# Located at /.singularity.d/runscript
+# Execute when apptainer run continer.sif is executed
+%runscript
+  echo $HELLO
+  /Projects/test_program/my_program
+
+%test 
+
+
+

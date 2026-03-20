@@ -1,0 +1,44 @@
+BootStrap: library
+From: ubuntu:latest
+Stage: build_example_program
+
+%setup
+  mkdir ${APPTAINER_ROOTFS}/Projects
+
+
+%environment
+  export HELLO="My environment is setup!"
+  export PATH=$PATH:/usr/games
+  export OMP_NUM_THREADS=1
+
+%arguments
+
+%files
+
+%post -c /bin/bash
+  apt-get update && apt-get upgrade -y
+
+  apt-get install -y build-essential \
+                  git \
+                  python3 \
+                  curl \
+                  flex \
+                  bison \
+                  wget \
+                  gnupg \
+                  ca-certificates \
+                  gfortran \
+  && rm -rf /var/lib/apt/lists/*
+
+
+  apt update -y
+
+%runscript
+  echo $HELLO
+  cowsay -e 00 -d "Increase capital gains tax! Also, plant more grass!"
+
+
+%test 
+
+
+

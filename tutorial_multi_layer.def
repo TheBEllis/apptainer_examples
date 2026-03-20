@@ -1,0 +1,40 @@
+BootStrap: localimage 
+From:/home/bill/Projects/apptainer_tutorial/tutorial_base_image.sif
+Stage: build-exec 
+
+%arguments
+BUILD_CORES=4
+
+%setup
+  mkdir -p $APPTAINER_ROOTFS/Projects/FISPACT
+
+%files
+  ./test_program /Projects/test_program
+
+%post -c /bin/bash
+  cd /Projects/test_program  
+  g++ main.cpp -o my_program
+
+BootStrap: localimage 
+From:/home/bill/Projects/apptainer_tutorial/tutorial_base_image.sif
+Stage: get-exec 
+
+%environment
+
+%arguments
+
+%setup
+
+%files from build-exec
+  /Projects/test_program/my_program /Projects/test_program/
+
+%post -c /bin/bash
+
+%startscript
+  #!/bin/bash
+  source /environment
+
+%runscript
+  #!/bin/bash
+  /Projects/test_program/my_program
+

@@ -1,0 +1,14 @@
+▗▖  ▗▖▗▄▄▄▖ ▗▄▄▖▗▄▄▖  ▗▄▖  ▗▄▄▖ ▗▄▖ ▗▄▄▄▖▗▄▄▄▖    ▗▄▄▄▖▗▄▖ ▗▄▄▖      ▗▄▄▖▗▄▄▄▖ ▗▄▄▖▗▄▄▖ ▗▄▄▄▖▗▄▄▄▖
+▐▛▚▞▜▌  █  ▐▌   ▐▌ ▐▌▐▌ ▐▌▐▌   ▐▌ ▐▌▐▌     █        █ ▐▌ ▐▌▐▌ ▐▌    ▐▌   ▐▌   ▐▌   ▐▌ ▐▌▐▌     █  
+▐▌  ▐▌  █  ▐▌   ▐▛▀▚▖▐▌ ▐▌ ▝▀▚▖▐▌ ▐▌▐▛▀▀▘  █        █ ▐▌ ▐▌▐▛▀▘      ▝▀▚▖▐▛▀▀▘▐▌   ▐▛▀▚▖▐▛▀▀▘  █  
+▐▌  ▐▌▗▄█▄▖▝▚▄▄▖▐▌ ▐▌▝▚▄▞▘▗▄▄▞▘▝▚▄▞▘▐▌     █        █ ▝▚▄▞▘▐▌       ▗▄▄▞▘▐▙▄▄▖▝▚▄▄▖▐▌ ▐▌▐▙▄▄▖  █  
+                                                                                                  
+     ▗▄▄▄▖▗▄▖     ▗▄▄▄   ▗▄▖     ▗▖   ▗▄▄▄▖ ▗▄▄▖▗▄▄▄▖                                             
+       █ ▐▌ ▐▌    ▐▌  █ ▐▌ ▐▌    ▐▌     █  ▐▌     █                                               
+       █ ▐▌ ▐▌    ▐▌  █ ▐▌ ▐▌    ▐▌     █   ▝▀▚▖  █                                               
+       █ ▝▚▄▞▘    ▐▙▄▄▀ ▝▚▄▞▘    ▐▙▄▄▖▗▄█▄▖▗▄▄▞▘  █                                               
+                                                                                                  
+1. Remove daily random 4 lines of code from teams for linux (Remember to spin wheel to pick lines)
+2. Make pictures 10% blurrier in powerpoint for web, previous commit was insufficently blury 
+3. Spend 1 trillion pounds on copilot marketing
+4. See if copilot can actually copilot a real plane

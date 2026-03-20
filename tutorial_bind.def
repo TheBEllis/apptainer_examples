@@ -1,0 +1,22 @@
+BootStrap: localimage 
+From:/home/bill/Projects/apptainer_tutorial/tutorial_base_image.sif
+Stage: build-exec 
+
+%setup
+
+%environment
+
+%arguments
+
+%files
+
+%post -c /bin/bash
+
+%runscript
+  cat /Projects/important_private_data/important_todo_list.txt
+
+
+%test 
+
+
+
