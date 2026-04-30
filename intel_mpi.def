@@ -81,8 +81,6 @@ BUILD_CORES=6
   export I_MPI_F90=gfortran
   export I_MPI_FC=gfortran
   export I_MPI_F77=gfortran
-
-  # Set intel mpi environment
   . /opt/intel/oneapi/setvars.sh
 
     

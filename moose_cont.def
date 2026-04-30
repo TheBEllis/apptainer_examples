@@ -1,0 +1,156 @@
+BootStrap: localimage 
+From:/home/bill/Projects/moose_apptainer/intel_mpi.sif
+Stage: moose_build 
+
+%arguments
+BUILD_CORES=6
+
+%environment
+export MOOSE_DIR=/Projects/moose
+export LIBCEED_DIR=/Projects/libCEED
+
+%setup
+
+%files
+
+%post -c /bin/bash
+ apt-get update && apt-get upgrade -y
+
+ ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime
+
+ DEBIAN_FRONTEND=noninteractive apt-get install -yy \
+   python3-dev \
+   python3-yaml \
+   python3-packaging \
+   python3-jinja2 \
+   python3-setuptools \
+   libboost-dev \
+   libboost-mpi-dev \
+   pkg-config
+
+ export CC=mpicc
+ export CXX=mpicxx
+ export FC=mpif90
+ export F90=mpif90
+ export F77=mpif77
+
+ export I_MPI_CC=gcc
+ export I_MPI_CXX=g++
+ export I_MPI_F90=gfortran
+ export I_MPI_FC=gfortran
+ export I_MPI_F77=gfortran
+
+ export MOOSE_JOBS={{BUILD_CORES}}
+ export JOBS={{BUILD_CORES}}
+ export LIBMESH_JOBS={{BUILD_CORES}}
+
+ # Set correct MPI vars
+ source /opt/intel/oneapi/setvars.sh
+
+ echo $LD_LIBRARY_PATH
+ echo $I_MPI_ROOT
+ echo $I_MPI_F90
+
+ # Go to projects dir
+ cd /Projects/
+
+ # Clone and setup libCEED
+ export LIBCEED_COMMIT=0016fb07e7c068f01d173a0b3c44fa5763051e70
+
+ git clone https://github.com/CEED/libCEED.git
+
+ cd libCEED
+
+ git checkout $LIBCEED_COMMIT
+
+ # Create heredoc to patch libceed with
+ cat << '__PATCH_EOF__' > libceed.patch
+diff --git a/Makefile b/Makefile
+index 5ecaecd7..bd2df8da 100644
+--- a/Makefile
++++ b/Makefile
+@@ -163,13 +163,16 @@ OMP_SIMD_FLAG := $(if $(call cc_check_flag,$(OMP_SIMD_FLAG)),$(OMP_SIMD_FLAG))
+ PEDANTIC      ?=
+ PEDANTICFLAGS ?= -Werror -pedantic
+ 
+-# Compiler flags
+ OPT    ?= -O $(MARCHFLAG) $(OPT.$(CC_VENDOR)) $(OMP_SIMD_FLAG)
+ CFLAGS ?= $(OPT) $(CFLAGS.$(CC_VENDOR)) $(if $(PEDANTIC),$(PEDANTICFLAGS))
+ CXXFLAGS ?= $(OPT) $(CXXFLAGS.$(CC_VENDOR)) $(if $(PEDANTIC),$(PEDANTICFLAGS))
+ FFLAGS ?= $(OPT) $(FFLAGS.$(FC_VENDOR))
+ LIBCXX ?= -lstdc++
+-NVCCFLAGS ?= -ccbin $(CXX) -Xcompiler '$(OPT)' -Xcompiler -fPIC
++#NVCCFLAGS ?= -ccbin $(CXX) -Xcompiler '$(OPT)' -Xcompiler -fPIC
++NVCCFLAGS = 
++
++$(info NVCCFLAGS  = '$(NVCCFLAGS)')# Compiler flags
++
+ ifneq ($(CUDA_ARCH),)
+   NVCCFLAGS += -arch=$(CUDA_ARCH)
+ endif
+__PATCH_EOF__
+
+ cat libceed.patch
+
+ git apply --check libceed.patch || echo "Error in applying patch!"
+
+ git apply libceed.patch
+
+ make -j 8 
+
+ # Clone and setup MOOSE
+ cd /Projects/
+ git clone https://github.com/idaholab/moose.git
+ cd moose
+
+ #checkout master branch
+ git checkout master
+
+
+ echo $MKLROOT
+
+ ./scripts/update_and_rebuild_petsc.sh --download-hypre=1 \
+                       --with-shared-libraries \
+                       --with-debugging=no \
+                       --with-hdf5-dir=${HDF5_DIR} \
+                       --with-blaslapack-dir=${MKLROOT} \
+                       --download-metis=1 \
+                       --download-parmetis=1 \
+                       --download-ptscotch=1 \
+                       --download-mumps=1 \
+                       --download-superlu_dist=1 \
+                       --download-scalapack=1 \
+                       --download-slepc=1 \
+                       --with-mpi=1 \
+                       --with-cxx-dialect=C++17 \
+                       --with-fortran-bindings=0 \
+                       --with-sowing=0 \
+                       --with-64-bit-indices \
+                       --with-make-np={{BUILD_CORES}} \
+                       --with-libceed-dir=/Projects/libCEED \
+                       --download-libceed=0 \
+                       --download-hpddm=0 \
+                       --with-cc=$CC \
+                       --with-cxx=$CXX \
+                       --with-fc=$FC \
+
+ ./scripts/update_and_rebuild_libmesh.sh --with-cxx-std=2017 \
+        --with-cc=$CC \
+        --with-cxx=$CXX \
+        --with-fc=$FC \
+        --with-dof-id-bytes=8 \
+        --with-unique-id-bytes=8 \
+        --with-boost=1
+
+
+ ./scripts/update_and_rebuild_wasp.sh
+
+ # Remove broken includes added by boost
+ cd /Projects/moose/libmesh/installed/lib/pkgconfig
+
+ sed -i 's/[ ]-I1\/include//g' *
+
+ cd /Projects/moose/test
+ make -j {{BUILD_CORES}}
+
+               
